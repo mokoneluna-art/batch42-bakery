@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Batch42 Bakery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Karla:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream: #FBF2E1;
+    --cream-deep: #F3E1BE;
+    --paper: #FFFCF5;
+    --brown-900: #3B2415;
+    --brown-700: #5C3A21;
+    --brown-500: #8B5A2B;
+    --caramel: #C6873F;
+    --gold: #E4B168;
+    --rust: #A8462F;
+    --sage: #74815A;
+    --line: #E3CFA6;
+    --shadow: 0 10px 30px rgba(59,36,21,0.12);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background-color: var(--cream);
+    background-image:
+      radial-gradient(circle at 8% 12%, rgba(198,135,63,0.10) 0, transparent 45%),
+      radial-gradient(circle at 92% 85%, rgba(168,70,47,0.08) 0, transparent 40%);
+    color: var(--brown-900);
+    font-family: 'Karla', sans-serif;
+    min-height:100vh;
+    position:relative;
+    overflow-x:hidden;
+  }
+  .crescent-field{
+    position:fixed; inset:0; z-index:0; pointer-events:none; opacity:0.5;
+  }
+  .crescent-field svg{width:100%;height:100%;}
+  h1,h2,h3,.display{
+    font-family:'Fraunces', serif;
+    color:var(--brown-900);
+    margin:0;
+  }
+  a{color:inherit;}
+  .wrap{ position:relative; z-index:1; max-width:1040px; margin:0 auto; padding:0 24px; }
+
+  header.top{
+    position:sticky; top:0; z-index:20;
+    background:rgba(251,242,225,0.92);
+    backdrop-filter: blur(6px);
+    border-bottom:1px solid var(--line);
+  }
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 24px; max-width:1040px; margin:0 auto;
+  }
+  .brand{ display:flex; align-items:center; gap:12px; }
+  .brand .mark{
+    width:40px;height:40px; border-radius:50%;
+    background:linear-gradient(145deg, var(--gold), var(--caramel));
+    display:flex; align-items:center; justify-content:center;
+    font-size:20px; box-shadow:inset 0 0 0 2px rgba(255,255,255,0.4);
+  }
+  .brand .name{ font-family:'Fraunces', serif; font-weight:700; font-size:1.25rem; letter-spacing:0.2px; }
+  .brand .tag{ font-size:0.7rem; color:var(--brown-500); letter-spacing:1.5px; text-transform:uppercase; }
+
+  nav.tabs{ display:flex; gap:4px; background:var(--cream-deep); padding:5px; border-radius:999px; border:1px solid var(--line); }
+  nav.tabs button{
+    border:none; background:transparent; padding:9px 18px; border-radius:999px;
+    font-family:'Karla',sans-serif; font-weight:600; font-size:0.86rem; color:var(--brown-700);
+    cursor:pointer; transition:all .2s ease;
+  }
+  nav.tabs button.active{ background:var(--brown-900); color:var(--cream); }
+  nav.tabs button:hover:not(.active){ background:rgba(139,90,43,0.12); }
+
+  main{ position:relative; z-index:1; }
+  .page{ display:none; padding:56px 0 90px; animation:fadein .4s ease; }
+  .page.active{ display:block; }
+  @keyframes fadein{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+
+  /* ---------- HOME ---------- */
+  .hero{ display:flex; gap:48px; align-items:center; flex-wrap:wrap; }
+  .hero-copy{ flex:1 1 420px; }
+  .eyebrow{ text-transform:uppercase; letter-spacing:2px; font-size:0.72rem; color:var(--rust); font-weight:700; margin-bottom:14px; }
+  .hero h1{ font-size:3rem; line-height:1.05; font-weight:600; }
+  .hero h1 em{ font-style:italic; color:var(--caramel); }
+  .hero p.lead{ margin-top:18px; font-size:1.08rem; line-height:1.6; color:var(--brown-700); max-width:480px; }
+  .hero-actions{ margin-top:28px; display:flex; gap:14px; flex-wrap:wrap; }
+  .btn{
+    display:inline-flex; align-items:center; gap:8px; padding:13px 24px; border-radius:12px;
+    font-family:'Karla',sans-serif; font-weight:700; font-size:0.92rem; border:none; cursor:pointer;
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .btn-primary{ background:var(--brown-900); color:var(--cream); box-shadow:var(--shadow); }
+  .btn-primary:hover{ transform:translateY(-2px); }
+  .btn-ghost{ background:transparent; color:var(--brown-900); border:1.5px solid var(--brown-900); }
+  .btn-ghost:hover{ background:var(--brown-900); color:var(--cream); }
+
+  .hero-ticket{
+    flex:1 1 320px; background:var(--paper); border-radius:18px; box-shadow:var(--shadow);
+    padding:26px; position:relative; border:1px solid var(--line);
+    transform:rotate(1.5deg);
+  }
+  .hero-ticket::before, .hero-ticket::after{
+    content:""; position:absolute; width:22px; height:22px; background:var(--cream); border-radius:50%;
+    top:50%; transform:translateY(-50%);
+  }
+  .hero-ticket::before{ left:-11px; }
+  .hero-ticket::after{ right:-11px; }
+  .ticket-row{ display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px dashed var(--line); font-size:0.92rem; }
+  .ticket-row:last-child{ border-bottom:none; }
+  .ticket-title{ font-family:'Fraunces',serif; font-size:1.05rem; margin-bottom:10px; }
+
+  .allergen-strip{
+    margin-top:70px; display:grid; grid-template-columns:repeat(5,1fr); gap:14px;
+  }
+  .allergen-chip{
+    background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:16px 10px; text-align:center;
+  }
+  .allergen-chip .ic{ font-size:1.5rem; }
+  .allergen-chip .lbl{ font-weight:700; font-size:0.8rem; margin-top:6px; }
+  .allergen-chip .sub{ font-size:0.72rem; color:var(--brown-500); margin-top:2px; }
+
+  .section-head{ margin:64px 0 26px; }
+  .section-head .eyebrow{ margin-bottom:8px; }
+  .section-head h2{ font-size:1.9rem; font-weight:600; }
+
+  .rating-box{
+    display:flex; align-items:center; gap:16px; background:var(--paper); border:1px solid var(--line);
+    border-radius:16px; padding:20px 24px; margin-top:20px;
+  }
+  .stars{ color:var(--caramel); font-size:1.3rem; letter-spacing:2px; }
+  .rating-num{ font-family:'Fraunces',serif; font-size:1.6rem; font-weight:700; }
+  .rating-note{ font-size:0.82rem; color:var(--brown-500); }
+  .quote-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; margin-top:16px;}
+  .quote-card{ background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:16px 18px; font-size:0.88rem; color:var(--brown-700); }
+  .quote-card .who{ margin-top:8px; font-weight:700; color:var(--brown-900); font-size:0.8rem; }
+  .placeholder-note{ font-size:0.72rem; color:var(--rust); margin-top:10px; }
+
+  /* ---------- MENU ---------- */
+  .menu-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(230px,1fr)); gap:20px; }
+  .item-card{ background:var(--paper); border:1px solid var(--line); border-radius:18px; padding:20px; box-shadow:var(--shadow); display:flex; flex-direction:column; }
+  .item-icon{ font-size:2rem; }
+  .item-card h3{ font-size:1.15rem; margin-top:10px; }
+  .item-card p{ font-size:0.85rem; color:var(--brown-700); line-height:1.5; margin-top:6px; flex:1; }
+  .tag-row{ display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; }
+  .tag{ font-size:0.68rem; font-weight:700; padding:4px 9px; border-radius:999px; background:var(--cream-deep); color:var(--brown-700); }
+  .tag.free{ background:#E7EEDD; color:var(--sage); }
+  .price{ margin-top:14px; font-family:'Fraunces',serif; font-weight:700; color:var(--rust); }
+
+  /* ---------- BUILDER ---------- */
+  .builder-layout{ display:grid; grid-template-columns:1.4fr 1fr; gap:32px; align-items:start; }
+  @media (max-width:860px){ .builder-layout{ grid-template-columns:1fr; } .allergen-strip{grid-template-columns:repeat(2,1fr);} .hero{flex-direction:column;} }
+
+  .builder-card{ background:var(--paper); border:1px solid var(--line); border-radius:18px; padding:26px; margin-bottom:22px; }
+  .builder-card h3{ font-size:1.05rem; margin-bottom:14px; }
+  .step-num{ display:inline-flex; width:22px;height:22px; background:var(--brown-900); color:var(--cream); border-radius:50%; align-items:center; justify-content:center; font-size:0.7rem; margin-right:8px; font-weight:700; }
+
+  .choice-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:10px; }
+  .choice{
+    border:1.5px solid var(--line); border-radius:12px; padding:12px; text-align:center; cursor:pointer;
+    background:var(--cream); font-size:0.82rem; font-weight:600; transition:all .15s ease; user-select:none;
+  }
+  .choice .ic{ display:block; font-size:1.3rem; margin-bottom:4px; }
+  .choice.selected{ border-color:var(--brown-900); background:var(--brown-900); color:var(--cream); }
+
+  .check-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; }
+  .check-item{ display:flex; align-items:center; gap:9px; background:var(--cream); border:1px solid var(--line); border-radius:10px; padding:10px 12px; font-size:0.84rem; }
+  .check-item input{ accent-color:var(--rust); width:16px;height:16px; }
+
+  .topping-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:10px; }
+  .topping{
+    border:1.5px solid var(--line); border-radius:12px; padding:10px 12px; font-size:0.82rem; cursor:pointer; background:var(--cream);
+    display:flex; align-items:center; justify-content:space-between; transition:all .15s ease;
+  }
+  .topping.selected{ border-color:var(--caramel); background:#FBE7C8; }
+  .topping.disabled{ opacity:0.35; cursor:not-allowed; text-decoration:line-through; }
+  .topping .warn{ font-size:0.65rem; color:var(--rust); }
+
+  textarea, input[type=text], input[type=email], input[type=tel]{
+    width:100%; padding:12px 14px; border-radius:10px; border:1.5px solid var(--line); font-family:'Karla',sans-serif;
+    font-size:0.9rem; background:var(--cream); color:var(--brown-900);
+  }
+  textarea{ min-height:70px; resize:vertical; }
+  label.field-label{ font-size:0.78rem; font-weight:700; color:var(--brown-700); display:block; margin-bottom:6px; }
+
+  .fulfil-toggle{ display:flex; gap:10px; }
+  .fulfil-toggle button{
+    flex:1; padding:12px; border-radius:12px; border:1.5px solid var(--line); background:var(--cream);
+    font-weight:700; font-size:0.85rem; cursor:pointer;
+  }
+  .fulfil-toggle button.active{ background:var(--brown-900); color:var(--cream); border-color:var(--brown-900); }
+
+  .safety-note{ background:#F6E7DF; border:1px solid var(--rust); border-radius:12px; padding:14px 16px; font-size:0.78rem; color:var(--brown-900); margin-top:6px; line-height:1.5; }
+
+  /* order ticket sticky */
+  .order-ticket{ position:sticky; top:110px; background:var(--brown-900); color:var(--cream); border-radius:18px; padding:24px; box-shadow:var(--shadow); }
+  .order-ticket h3{ color:var(--cream); font-size:1.1rem; }
+  .order-ticket .row{ display:flex; justify-content:space-between; font-size:0.85rem; padding:8px 0; border-bottom:1px dashed rgba(251,242,225,0.25); }
+  .order-ticket .row:last-of-type{ border-bottom:none; }
+  .order-ticket .total{ margin-top:10px; padding-top:14px; border-top:1.5px solid rgba(251,242,225,0.3); display:flex; justify-content:space-between; font-family:'Fraunces',serif; font-size:1.25rem; font-weight:700; }
+  .empty-note{ font-size:0.82rem; color:rgba(251,242,225,0.6); }
+
+  /* ---------- ORDER & PAYMENT ---------- */
+  .pay-grid{ display:grid; grid-template-columns:1.1fr 1fr; gap:28px; }
+  @media (max-width:860px){ .pay-grid{grid-template-columns:1fr;} }
+  .pay-card{ background:var(--paper); border:1px solid var(--line); border-radius:18px; padding:26px; }
+  .pay-card h3{ font-size:1.1rem; margin-bottom:16px; }
+  .bank-row{ display:flex; justify-content:space-between; padding:11px 0; border-bottom:1px solid var(--line); font-size:0.88rem; }
+  .bank-row:last-child{ border-bottom:none; }
+  .bank-row .k{ color:var(--brown-500); font-weight:600; }
+  .bank-row .v{ font-weight:700; text-align:right; }
+  .placeholder{ color:var(--rust); }
+  .payshap-panel{ margin-top:20px; background:var(--cream-deep); border-radius:14px; padding:18px; }
+  .payshap-panel .head{ display:flex; align-items:center; gap:10px; font-weight:700; margin-bottom:10px; }
+  .qr-box{ width:96px; height:96px; border:2px dashed var(--brown-500); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:0.65rem; color:var(--brown-500); text-align:center; margin:10px 0; }
+  .email-box{ margin-top:18px; background:var(--cream); border:1.5px solid var(--brown-900); border-radius:12px; padding:16px; text-align:center; }
+  .email-box .addr{ font-family:'Fraunces',serif; font-weight:700; font-size:1.05rem; color:var(--rust); }
+  .warn-banner{ background:#FCEFE9; border:1px solid var(--rust); border-radius:12px; padding:14px 16px; font-size:0.76rem; color:var(--brown-900); margin-top:18px; line-height:1.5; }
+
+  footer{ text-align:center; padding:34px 0; font-size:0.78rem; color:var(--brown-500); border-top:1px solid var(--line); }
+
+  /* ===== v2 additions ===== */
+  :focus-visible{ outline:3px solid var(--rust); outline-offset:2px; }
+  .tag{ font-size:0.76rem; }
+  .tag.warn{ background:#F6E7DF; color:var(--rust); }
+  .tag-row .lbl{ font-size:0.76rem; font-weight:700; color:var(--brown-500); align-self:center; }
+  .btn.sm{ padding:9px 16px; font-size:0.84rem; margin-top:12px; align-self:flex-start; }
+  .btn:disabled{ opacity:.45; cursor:not-allowed; transform:none; }
+  .allergen-strip{ grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); }
+  button.allergen-chip{ font-family:inherit; color:inherit; cursor:pointer; }
+  button.allergen-chip:hover{ border-color:var(--brown-900); }
+  .cart-badge{ display:inline-block; min-width:20px; padding:1px 6px; margin-left:6px; border-radius:999px; background:var(--rust); color:#fff; font-size:0.72rem; }
+  .cart-badge:empty{ display:none; }
+  .steps-list{ margin:0; padding:0; list-style:none; }
+  .filter-bar{ background:var(--paper); border:1px solid var(--line); border-radius:18px; padding:20px 22px; margin-bottom:16px; }
+  .filter-row{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:10px; }
+  .chip{ border:1.5px solid var(--line); background:var(--cream); color:var(--brown-900); padding:9px 15px; border-radius:999px; font-family:'Karla',sans-serif; font-weight:700; font-size:0.86rem; cursor:pointer; }
+  .chip[aria-pressed="true"]{ background:var(--brown-900); color:var(--cream); border-color:var(--brown-900); }
+  .filter-note{ font-size:0.8rem; color:var(--brown-700); margin-top:12px; line-height:1.5; }
+  .menu-count{ font-size:0.86rem; font-weight:700; color:var(--brown-700); margin:6px 0 16px; }
+  .info-banner{ background:#F6E7DF; border:1px solid var(--rust); border-radius:12px; padding:14px 16px; font-size:0.84rem; line-height:1.55; color:var(--brown-900); margin-bottom:18px; }
+  .ing-panel{ margin-top:12px; border-top:1px dashed var(--line); padding-top:12px; }
+  .ing-list{ list-style:none; margin:0; padding:0; }
+  .ing-row{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; padding:8px 0; border-bottom:1px solid var(--line); font-size:0.86rem; }
+  .ing-row:last-child{ border-bottom:none; }
+  .ing-name{ font-weight:700; flex:1 1 120px; }
+  .ing-tags{ font-size:0.74rem; color:var(--rust); font-weight:700; }
+  select, input[type=number], input[type=date]{ font-family:'Karla',sans-serif; font-size:0.84rem; padding:8px 10px; border-radius:8px; border:1.5px solid var(--line); background:var(--cream); color:var(--brown-900); max-width:100%; }
+  .panel-actions{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:12px; }
+  .panel-actions .link{ background:none; border:none; padding:6px 0; font-family:'Karla',sans-serif; font-weight:700; font-size:0.84rem; color:var(--rust); text-decoration:underline; cursor:pointer; }
+  .qty-label{ font-size:0.82rem; font-weight:700; display:flex; align-items:center; gap:6px; }
+  .qty-label input{ width:68px; }
+  .cart-line{ display:flex; flex-wrap:wrap; gap:8px 14px; justify-content:space-between; padding:14px 0; border-bottom:1px solid var(--line); }
+  .cart-line:last-of-type{ border-bottom:none; }
+  .cart-line .nm{ font-weight:700; }
+  .cart-line .sub{ font-size:0.8rem; color:var(--brown-700); margin-top:3px; line-height:1.45; }
+  .qty-ctl{ display:flex; align-items:center; gap:6px; }
+  .qty-ctl button{ width:34px; height:34px; border-radius:8px; border:1.5px solid var(--line); background:var(--cream); font-weight:700; font-size:1rem; cursor:pointer; }
+  .qty-ctl .rm{ width:auto; padding:0 10px; font-size:0.78rem; color:var(--rust); }
+  .sum-row{ display:flex; justify-content:space-between; padding:9px 0; font-size:0.92rem; }
+  .sum-row.total{ border-top:1.5px solid var(--brown-900); margin-top:6px; padding-top:14px; font-family:'Fraunces',serif; font-size:1.25rem; font-weight:700; }
+  .stack{ display:grid; gap:22px; }
+  .pay-card .field{ margin-top:14px; }
+  .pay-steps{ margin:14px 0 0; padding-left:20px; font-size:0.88rem; line-height:1.6; }
+  .msg{ font-size:0.86rem; font-weight:700; margin-top:12px; line-height:1.5; }
+  .msg.err{ color:var(--rust); } .msg.ok{ color:var(--sage); }
+  .btn-row{ display:flex; flex-wrap:wrap; gap:12px; margin-top:16px; }
+  .star-row{ display:flex; gap:6px; margin:12px 0; }
+  .star-row button{ background:none; border:none; font-size:2rem; line-height:1; color:var(--line); cursor:pointer; padding:2px; }
+  .star-row button.on{ color:var(--caramel); }
+  footer .f-line{ margin-top:6px; }
+  .order-ticket .btn{ width:100%; justify-content:center; margin-top:16px; background:var(--cream); color:var(--brown-900); }
+  .order-ticket .btn:disabled{ opacity:.45; }
+</style>
+</head>
+<body>
+
+<div class="crescent-field">
+  <svg aria-hidden="true"><defs>
+    <pattern id="crescents" width="140" height="140" patternUnits="userSpaceOnUse">
+      <text x="10" y="80" font-size="46" fill="#C6873F" opacity="0.10" transform="rotate(-18 30 60)">🥐</text>
+    </pattern>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#crescents)"/></svg>
+</div>
+
+<header class="top">
+  <div class="topbar">
+    <div class="brand">
+      <div class="mark">🥐</div>
+      <div>
+        <div class="name">Batch42 Bakery</div>
+        <div class="tag">Vaal &middot; Home Bakery</div>
+      </div>
+    </div>
+    <nav class="tabs" aria-label="Main">
+      <button class="active" data-page="home">Home</button>
+      <button data-page="menu">Menu</button>
+      <button data-page="builder">Build Your Own</button>
+      <button data-page="order">Order &amp; Pay<span class="cart-badge" id="cartBadge" aria-label="items in order"></span></button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- HOME -->
+  <section class="page active" id="page-home">
+    <div class="hero">
+      <div class="hero-copy">
+        <div class="eyebrow">Freshly baked &middot; Made to order</div>
+        <h1>South African <em>bakes</em>,<br>built around <em>you</em>.</h1>
+        <p class="lead">From malva pudding to melt-in-the-mouth scones, see exactly what goes into every bake, filter the menu by vegan, lactose and nut information, and swap ingredients to suit your dietary needs. Every bake is made fresh after you order.</p>
+        <div class="hero-actions">
+          <button class="btn btn-primary" onclick="goTo('menu')">See the itemized menu →</button>
+          <button class="btn btn-ghost" onclick="goTo('builder')">Build your own bake</button>
+        </div>
+      </div>
+      <div class="hero-ticket">
+        <div class="ticket-title">How ordering works</div>
+        <div class="ticket-row"><span>1 &middot; Pick a bake</span><span>Menu</span></div>
+        <div class="ticket-row"><span>2 &middot; See ingredients &amp; swap</span><span>Itemized</span></div>
+        <div class="ticket-row"><span>3 &middot; Collection or delivery</span><span>Your choice</span></div>
+        <div class="ticket-row"><span>4 &middot; Pay by EFT</span><span>Email proof</span></div>
+      </div>
+    </div>
+
+    <div class="section-head" style="margin-top:56px;">
+      <div class="eyebrow">Dietary needs</div>
+      <h2>Filter the menu your way</h2>
+    </div>
+    <div class="allergen-strip" id="homeChips"></div>
+
+    <div class="section-head">
+      <div class="eyebrow">Planning an event?</div>
+      <h2>Catering bookings</h2>
+    </div>
+    <div class="pay-card" style="max-width:640px;">
+      <p style="margin:0 0 14px;line-height:1.6;">Tell us the date and how many people or units you need, and the bakery will confirm your catering booking.</p>
+      <button class="btn btn-primary" onclick="openCatering()">Request a catering booking</button>
+    </div>
+
+    <div class="section-head">
+      <div class="eyebrow">Your feedback</div>
+      <h2>Rate our customer service</h2>
+    </div>
+    <div class="pay-card" style="max-width:640px;">
+      <div class="field-label" id="rateLbl">How was your experience?</div>
+      <div class="star-row" id="starRow" role="group" aria-labelledby="rateLbl"></div>
+      <label class="field-label" for="rateComment">Comments (optional)</label>
+      <textarea id="rateComment" placeholder="Tell us what went well or what we could improve"></textarea>
+      <div class="btn-row"><button class="btn btn-primary" id="rateSend">Send feedback by email</button></div>
+      <div class="msg" id="rateMsg" role="status"></div>
+    </div>
+  </section>
+
+  <!-- MENU -->
+  <section class="page" id="page-menu">
+    <div class="section-head">
+      <div class="eyebrow">The Menu</div>
+      <h2>South African favourites, baked fresh</h2>
+    </div>
+    <div class="info-banner" id="menuBanner"></div>
+    <div class="filter-bar">
+      <label class="field-label" for="menuSearch">Search products</label>
+      <input type="text" id="menuSearch" placeholder="e.g. scones, chocolate">
+      <div class="filter-row" id="filterMain" role="group" aria-label="Dietary filters"></div>
+      <div class="field-label" style="margin-top:16px;">Other dietary needs (swaps on request)</div>
+      <div class="filter-row" id="filterMore" role="group" aria-label="Other dietary filters"></div>
+      <div class="filter-note">Filters show bakes that already meet the need, or can meet it using the ingredient swaps listed on each bake. Turning a filter on applies those swaps for you.</div>
+    </div>
+    <div class="menu-count" id="menuCount" aria-live="polite"></div>
+    <div class="menu-grid" id="menuGrid"></div>
+  </section>
+
+  <!-- BUILDER -->
+  <section class="page" id="page-builder">
+    <div class="section-head">
+      <div class="eyebrow">Build Your Own</div>
+      <h2>Design a bake that fits your dietary needs</h2>
+    </div>
+
+    <div class="builder-layout">
+      <div>
+        <div class="builder-card">
+          <h3><span class="step-num">1</span>Choose your base bake</h3>
+          <div class="choice-grid" id="baseChoices"></div>
+        </div>
+
+        <div class="builder-card">
+          <h3><span class="step-num">2</span>Tell us your dietary needs</h3>
+          <div class="check-grid" id="dietChecks"></div>
+          <div class="msg err" id="bWarn" role="status"></div>
+          <div class="safety-note" id="safetyNote"></div>
+        </div>
+
+        <div class="builder-card">
+          <h3><span class="step-num">3</span>Check the ingredients &amp; swap</h3>
+          <div id="bIng"><div class="filter-note">Choose a base bake to see its ingredients.</div></div>
+        </div>
+
+        <div class="builder-card">
+          <h3><span class="step-num">4</span>Pick your toppings</h3>
+          <div class="topping-grid" id="toppingGrid"></div>
+        </div>
+
+        <div class="builder-card">
+          <h3><span class="step-num">5</span>Quantity</h3>
+          <label class="qty-label" for="bQty">Number of bakes <input type="number" id="bQty" min="1" max="99" value="1"></label>
+        </div>
+      </div>
+
+      <div class="order-ticket" id="orderTicket">
+        <h3>Your Bake Ticket</h3>
+        <div id="ticketBody"><div class="empty-note">Choose a base bake to start building your order.</div></div>
+        <div class="total" id="ticketTotal" style="display:none;"><span>Estimated total</span><span id="totalValue">R0.00</span></div>
+        <button class="btn" id="bAdd" disabled>Add to my order</button>
+        <div class="msg" id="bMsg" role="status" style="color:var(--gold);"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ORDER & PAY -->
+  <section class="page" id="page-order">
+    <div class="section-head">
+      <div class="eyebrow">Order &amp; Payment</div>
+      <h2>Review your order, choose collection or delivery, and pay by EFT</h2>
+    </div>
+
+    <div class="pay-grid">
+      <div class="stack">
+        <div class="pay-card">
+          <h3>Review your order</h3>
+          <div id="cartBox"></div>
+        </div>
+
+        <div class="pay-card">
+          <h3>Collection or delivery</h3>
+          <div class="fulfil-toggle" role="group" aria-label="Collection or delivery">
+            <button class="active" id="btnPickup" onclick="setFulfil('collection')">🏠 Collection</button>
+            <button id="btnDelivery" onclick="setFulfil('delivery')">🚚 Delivery</button>
+          </div>
+          <div id="collectFields" class="field">
+            <div class="filter-note">Collection address: <span id="collectAddr"></span></div>
+          </div>
+          <div id="deliveryFields" style="display:none;">
+            <div class="filter-note">Delivery is limited to the bakery's local areas and uses a fixed delivery fee. The bakery will confirm that your area is covered.</div>
+            <div class="field"><label class="field-label" for="suburb">Suburb / area</label><input type="text" id="suburb"></div>
+            <div class="field"><label class="field-label" for="addressField">Delivery address</label>
+            <textarea id="addressField" placeholder="Street, suburb, city, postal code"></textarea></div>
+            <div class="btn-row"><button class="btn btn-ghost" id="locBtn" type="button">📍 Share my location</button></div>
+            <div class="msg" id="locMsg" role="status"></div>
+          </div>
+        </div>
+
+        <div class="pay-card">
+          <h3>Your details</h3>
+          <div class="field"><label class="field-label" for="custName">Full name</label><input type="text" id="custName" autocomplete="name"></div>
+          <div class="field"><label class="field-label" for="custPhone">Contact number</label><input type="tel" id="custPhone" autocomplete="tel" placeholder="+27 XX XXX XXXX"></div>
+          <div class="field"><label class="field-label" for="custEmail">Email for order updates</label><input type="email" id="custEmail" autocomplete="email" placeholder="you@email.com"></div>
+          
+          <!-- UPDATED ALLERGY WARNING -->
+          <div class="field">
+            <label class="field-label" for="orderNotes">Allergy details or other notes for the bakery</label>
+            <div class="filter-note" style="margin-bottom: 8px; color: var(--rust); font-weight: bold;">⚠️ Home kitchen: We cannot guarantee an allergen-free environment. Please list your allergies below so the bakery can contact you before baking.</div>
+            <textarea id="orderNotes" placeholder="e.g. I have a severe nut allergy. Please contact me to confirm before baking."></textarea>
+          </div>
+          
+          <div class="field"><label class="field-label" for="changeNote">Change or concern about this order (optional)</label>
+          <textarea id="changeNote"></textarea></div>
+          <div class="field"><div class="check-item" style="max-width:100%;"><input type="checkbox" id="cateringToggle"><label for="cateringToggle">This is a catering booking</label></div></div>
+          <div id="cateringFields" style="display:none;">
+            <div class="field"><label class="field-label" for="catDate">Event date</label><input type="date" id="catDate"></div>
+            <div class="field"><label class="field-label" for="catSize">Number of people or units</label><input type="text" id="catSize"></div>
+            <div class="field"><label class="field-label" for="catNotes">Event details</label><textarea id="catNotes"></textarea></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stack">
+        <div class="pay-card">
+          <h3>Pay by EFT</h3>
+          <div id="bankRows"></div>
+          
+          <!-- UPDATED EFT REFERENCE BOX -->
+          <div class="bank-row" style="background: var(--gold); padding: 12px; border-radius: 8px; border-bottom: none; margin: 10px 0;">
+            <span class="k" style="color: var(--brown-900); font-weight: 800;">USE THIS REFERENCE:</span>
+            <span class="v" id="refShow" style="font-size: 1.1rem; color: var(--rust);"></span>
+          </div>
+          
+          <ol class="pay-steps">
+            <li>Make an EFT payment for the order total using the reference above.</li>
+            <li>Email your proof of payment to the bakery.</li>
+            <li>The bakery confirms your order and tells you how long it will take to prepare.</li>
+          </ol>
+          <div class="email-box">
+            <div style="font-size:0.82rem; color:var(--brown-700); margin-bottom:4px;">Send proof of payment to</div>
+            <div class="addr" id="popEmail"></div>
+          </div>
+          <div class="btn-row"><button class="btn btn-ghost" id="popBtn" type="button">Email proof of payment</button></div>
+        </div>
+
+        <div class="pay-card">
+          <h3>Send your order</h3>
+          <div class="filter-note">Every bake is made after your order is received. The bakery will tell you how long it will take by email, SMS or phone call. Working hours: <strong id="hoursShow"></strong>.</div>
+          <div class="btn-row">
+            <button class="btn btn-primary" id="sendBtn" type="button">Email order to bakery</button>
+            <button class="btn btn-ghost" id="copyBtn" type="button">Copy order summary</button>
+          </div>
+          <div class="msg" id="sendMsg" role="status"></div>
+        </div>
+
+        <div class="pay-card">
+          <h3>Contact the bakery</h3>
+          <div class="bank-row"><span class="k">Phone</span><span class="v" id="cPhone"></span></div>
+          <div class="bank-row"><span class="k">Email</span><span class="v" id="cEmail"></span></div>
+          <div class="bank-row"><span class="k">Working hours</span><span class="v" id="cHours"></span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>Batch42 Bakery · Vaal, South Africa · Made with care, one tray at a time.<div class="f-line">Working hours: <span id="fHours"></span></div></footer>
+
+<script>
+const $ = id => document.getElementById(id);
+
+/* =====================================================================
+   BAKERY SETTINGS — edit these yourself. Leave a value '' to show
+   "[to be added by the bakery]" on the site.
+   ===================================================================== */
+const BAKERY = {
+  email: 'oremoholobiz@gmail.com', // updated with real email
+  phone: '',            // contact number
+  address: '',          // collection address
+  hours: '8:00 a.m. to 6:00 p.m.',
+  bank: { 'Bank': 'Capitec', 'Account name': 'Ore Moholo', 'Account number': '1846452161', 'Account type': 'Savings', 'Branch code': '470010' }
+};
+const DELIVERY_FEE = 40;                          // fixed local delivery fee
+const PRICING = { swapExtra: 0, toppingExtra: 0 }; // extra charge per swap / per topping (R)
+
+/* =====================================================================
+   MENU DATA
+   ===================================================================== */
+const NUT_NOTE = 'Nuts: no nut ingredients listed. Possible nut exposure: confirm with the bakery';
+const TAGNAME = { gluten:'Gluten', dairy:'Dairy', egg:'Egg', soy:'Soy', nuts:'Nuts' };
+const SW = {
+  flour:{n:'Gluten-free flour blend',t:[]}, butter:{n:'Plant-based butter',t:[]},
+  milk:{n:'Plant-based milk',t:[]}, bmilk:{n:'Plant-based milk + lemon juice',t:[]},
+  cream:{n:'Plant-based cream',t:[]}, egg:{n:'Flax egg',t:[]},
+  choc:{n:'Soy-free dark chocolate',t:[]}, oats:{n:'Certified gluten-free oats',t:[]}
+};
+const G = {
+  flour:()=>({n:'Wheat flour',t:['gluten'],s:SW.flour}),
+  butter:()=>({n:'Butter',t:['dairy'],s:SW.butter}),
+  milk:()=>({n:'Milk',t:['dairy'],s:SW.milk}),
+  bmilk:()=>({n:'Buttermilk',t:['dairy'],s:SW.bmilk}),
+  cream:n=>({n,t:['dairy'],s:SW.cream}),
+  egg:()=>({n:'Egg',t:['egg'],s:SW.egg}),
+  choc:()=>({n:'Dark chocolate',t:['soy'],s:SW.choc}),
+  oats:()=>({n:'Rolled oats',t:['gluten'],s:SW.oats})
+};
+const P = n => ({n,t:[],s:null});
+const ITEMS = [
+  {id:'scone', icon:'🥐', name:'Buttermilk Scones', desc:'Crumbly, lightly sweet scones served with jam and cream.', price:0,
+    ing:[G.flour(),P('Baking powder'),P('Sugar'),G.butter(),G.bmilk(),G.egg(),P('Salt'),P('Jam'),G.cream('Cream (served with)')]},
+  {id:'muffin', icon:'🧁', name:'Banana & Cinnamon Muffins', desc:'Soft-crumbed muffins packed with ripe banana.', price:0,
+    ing:[G.flour(),P('Ripe bananas'),P('Sugar'),G.butter(),G.egg(),G.milk(),P('Baking powder'),P('Cinnamon')]},
+  {id:'jamtart', icon:'🥧', name:'Jam Tarts', desc:'Shortcrust pastry filled with apricot jam, a South African teatime staple.', price:0,
+    ing:[G.flour(),G.butter(),P('Sugar'),G.egg(),P('Apricot jam')]},
+  {id:'malva', icon:'🍮', name:'Malva Pudding', desc:'Spongy apricot pudding drowned in a warm cream sauce.', price:0,
+    ing:[G.flour(),P('Sugar'),G.egg(),P('Apricot jam'),G.butter(),G.milk(),P('Bicarbonate of soda'),P('Vinegar'),G.cream('Cream (sauce)')]},
+  {id:'cookie', icon:'🍪', name:'Oat & Raisin Cookies', desc:'Chewy, wholesome cookies, baked golden at the edges.', price:0,
+    ing:[G.oats(),G.flour(),G.butter(),P('Sugar'),G.egg(),P('Raisins'),P('Bicarbonate of soda')]},
+  {id:'brownie', icon:'🍫', name:'Dark Chocolate Brownies', desc:'Fudgy, deeply chocolatey squares.', price:0,
+    ing:[G.choc(),G.butter(),P('Sugar'),G.egg(),G.flour(),P('Cocoa powder')]},
+  {id:'cake', icon:'🎂', name:'Vanilla Layer Cake', desc:'Classic vanilla sponge with buttercream, by the slice or whole.', price:0,
+    ing:[G.flour(),P('Sugar'),G.butter(),G.egg(),G.milk(),P('Vanilla extract'),P('Baking powder'),P('Icing sugar')]},
+  {id:'pancake', icon:'🥞', name:'Pannekoek', desc:'Rolled thin, dusted with cinnamon sugar, a squeeze of lemon.', price:0,
+    ing:[G.flour(),G.egg(),G.milk(),G.butter(),P('Salt'),P('Cinnamon sugar'),P('Lemon juice')]},
+  {id:'koeksister', icon:'🍥', name:'Koeksisters', desc:'Plaited dough, deep-fried and dunked in cold syrup.', price:0,
+    ing:[G.flour(),P('Baking powder'),G.butter(),G.egg(),G.milk(),P('Cooking oil (frying)'),P('Sugar syrup')]},
+  {id:'rusk', icon:'🥖', name:'Buttermilk Rusks', desc:'Twice-baked, made for dunking in your morning rooibos.', price:0,
+    ing:[G.flour(),G.butter(),G.bmilk(),G.egg(),P('Sugar'),P('Baking powder')]}
+];
+const TOPPINGS = [
+  {name:'Chocolate Ganache', tags:['dairy','soy']},
+  {name:'Salted Caramel Drizzle', tags:['dairy']},
+  {name:'Cream Cheese Icing', tags:['dairy']},
+  {name:'Toasted Coconut Flakes', tags:[]},
+  {name:'Almond Flakes', tags:['nuts']},
+  {name:'Chopped Pecans', tags:['nuts']},
+  {name:'Fresh Berry Compote', tags:[]},
+  {name:'Golden Syrup Drizzle', tags:[]},
+  {name:'Cinnamon Sugar Dusting', tags:[]},
+  {name:'Apricot Jam Swirl', tags:[]}
+];
+const DIETS = [
+  {k:'vegan',   label:'Vegan',              c:['dairy','egg'], main:true},
+  {k:'lactose', label:'Avoids lactose',     c:['dairy'],       main:true},
+  {k:'nuts',    label:'No nut ingredients', c:['nuts'],        main:true},
+  {k:'gluten',  label:'Gluten-free',        c:['gluten']},
+  {k:'egg',     label:'Egg-free',           c:['egg']},
+  {k:'soy',     label:'Soy-free',           c:['soy']}
+];
+
+/* ---------- helpers ---------- */
+// UPDATE 1: Show "Price on request" instead of R0.00
+const money = n => n > 0 ? 'R' + Number(n).toFixed(2) : '<span style="font-size: 0.85rem; color: var(--brown-500);">Price on request</span>';
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+// UPDATE 2: Change placeholder to shared upon confirmation
+const ph = v => v ? esc(v) : '<span class="placeholder" style="font-size: 0.85rem;">Shared upon order confirmation</span>';
+const txt = v => v || '[not added yet]';
+const hit = (a,b) => a.some(x => b.includes(x));
+const conflicts = ks => [...new Set(ks.flatMap(k => DIETS.find(d => d.k===k).c))];
+const canMeet = (it,ks) => { const C = conflicts(ks); return it.ing.every(g => !hit(g.t,C) || (g.s && !hit(g.s.t,C))); };
+const autoSwaps = (it,ks) => { const C = conflicts(ks); return it.ing.map(g => hit(g.t,C) && !!g.s && !hit(g.s.t,C)); };
+const curTags = (it,sw) => [...new Set(it.ing.flatMap((g,i) => sw[i] ? g.s.t : g.t))];
+const meets = (tags,d) => !hit(tags,d.c);
+const tagChips = tags => tags.map(t => `<span class="tag">${TAGNAME[t]}</span>`).join('');
+const swapLabels = (it,sw) => it.ing.map((g,i) => sw[i] ? `${g.n} → ${g.s.n}` : null).filter(Boolean);
+const clampQty = v => { v = parseInt(v,10); return isNaN(v) ? 1 : Math.min(99, Math.max(1, v)); };
+
+/* ---------- navigation ---------- */
+function goTo(page){
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  $('page-'+page).classList.add('active');
+  document.querySelectorAll('nav.tabs button').forEach(b => b.classList.toggle('active', b.dataset.page===page));
+  if(page==='order') renderOrder();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+document.querySelectorAll('nav.tabs button').forEach(b => b.addEventListener('click', () => goTo(b.dataset.page)));
+
+/* ---------- ingredient rows (shared by menu + builder) ---------- */
+function ingRows(it, sw, ctx){
+  return '<ul class="ing-list">' + it.ing.map((g,i) => {
+    const cur = sw[i] ? g.s : g;
+    const sel = g.s ? `<select data-act="swap" data-ctx="${ctx}" data-id="${it.id}" data-i="${i}" aria-label="Swap option for ${esc(g.n)}">
+      <option value="0"${sw[i]?'':' selected'}>${esc(g.n)} (standard)</option>
+      <option value="1"${sw[i]?' selected':''}>Swap: ${esc(g.s.n)}</option></select>` : '';
+    return `<li class="ing-row"><span class="ing-name">${esc(cur.n)}</span>${cur.t.length?`<span class="ing-tags">${cur.t.map(t=>TAGNAME[t]).join(', ')}</span>`:''}${sel}</li>`;
+  }).join('') + '</ul>';
+}
+
+/* ---------- cart ---------- */
+let cart = [], bakeSeq = 0;
+// Automatic reference number for each bake: order reference + running number (e.g. BATCH42-583-01)
+const bakeRef = () => REF + '-' + String(++bakeSeq).padStart(2,'0');
+const lineTotal = l => (l.price + l.swaps.length*PRICING.swapExtra + l.tops.length*PRICING.toppingExtra) * l.qty;
+function addLine(it, sw, qty, tops){
+  const swaps = swapLabels(it,sw), topsArr = [...tops].sort();
+  const key = it.id+'|'+sw.map(Number).join('')+'|'+topsArr.join(',');
+  const ex = cart.find(l => l.key===key);
+  let line;
+  if(ex){ ex.qty = Math.min(99, ex.qty+qty); line = ex; }
+  else {
+    line = {key, ref:bakeRef(), id:it.id, icon:it.icon, name:it.name, qty, price:it.price, swaps, tops:topsArr};
+    cart.push(line);
+  }
+  updateBadge();
+  return line;
+}
+function updateBadge(){
+  const n = cart.reduce((s,l) => s+l.qty, 0);
+  $('cartBadge').textContent = n ? n : '';
+}
+
+/* ---------- menu ---------- */
+let menuSw = {}, openSet = new Set(), qtyMap = {}, filt = new Set(), q = '';
+ITEMS.forEach(it => { menuSw[it.id] = it.ing.map(() => false); qtyMap[it.id] = 1; });
+
+function cardHTML(it){
+  const sw = menuSw[it.id], tags = curTags(it,sw), open = openSet.has(it.id);
+  const ok = DIETS.filter(d => meets(tags,d)).map(d => `<span class="tag free">${d.label}</span>`).join('');
+  let h = `<div class="item-card" id="card-${it.id}">
+    <div class="item-icon" aria-hidden="true">${it.icon}</div>
+    <h3>${esc(it.name)}</h3><p>${esc(it.desc)}</p>
+    <div class="tag-row">${tags.length ? '<span class="lbl">Contains:</span>'+tagChips(tags) : '<span class="lbl">No gluten, dairy, egg or soy ingredients</span>'}</div>
+    <div class="tag-row"><span class="lbl">Meets:</span>${ok}</div>
+    <div class="tag-row"><span class="tag warn">${esc(NUT_NOTE)}</span></div>
+    <div class="price">${money(it.price)}</div>
+    <button class="btn btn-ghost sm" data-act="toggle" data-id="${it.id}" aria-expanded="${open}">${open?'Hide':'View'} ingredients &amp; swaps</button>`;
+  if(open){
+    h += `<div class="ing-panel">${ingRows(it,sw,'m')}
+      <div class="panel-actions">
+        <button class="link" data-act="vegan" data-id="${it.id}">Make this vegan</button>
+        <button class="link" data-act="reset" data-id="${it.id}">Reset to standard</button>
+      </div>
+      <div class="panel-actions">
+        <label class="qty-label">Qty <input type="number" min="1" max="99" value="${qtyMap[it.id]}" data-act="qty" data-id="${it.id}"></label>
+        <button class="btn btn-primary" style="padding:10px 18px;font-size:.86rem;" data-act="add" data-id="${it.id}">Add to order</button>
+      </div><div class="msg ok" id="added-${it.id}" role="status"></div></div>`;
+  }
+  return h + '</div>';
+}
+function refreshCard(id){
+  const it = ITEMS.find(i => i.id===id), el = $('card-'+id);
+  if(el) el.outerHTML = cardHTML(it);
+}
+function renderMenu(){
+  const ks = [...filt];
+  const list = ITEMS.filter(it => (!q || (it.name+' '+it.desc).toLowerCase().includes(q)) && canMeet(it,ks));
+  $('menuCount').textContent = `Showing ${list.length} of ${ITEMS.length} bakes`;
+  $('menuGrid').innerHTML = list.length ? list.map(cardHTML).join('') : '<p>No bakes match these filters. Try removing one, or tell the bakery about your needs in the order notes.</p>';
+}
+function renderChips(){
+  const mk = d => `<button type="button" class="chip" data-act="chip" data-k="${d.k}" aria-pressed="${filt.has(d.k)}">${d.label}</button>`;
+  $('filterMain').innerHTML = DIETS.filter(d => d.main).map(mk).join('');
+  $('filterMore').innerHTML = DIETS.filter(d => !d.main).map(mk).join('');
+}
+function applyFilters(){
+  const ks = [...filt];
+  ITEMS.forEach(it => { menuSw[it.id] = ks.length && canMeet(it,ks) ? autoSwaps(it,ks) : it.ing.map(() => false); });
+  renderChips(); renderMenu();
+}
+$('menuSearch').addEventListener('input', e => { q = e.target.value.trim().toLowerCase(); renderMenu(); });
+$('menuBanner').innerHTML = '<strong>Please read:</strong> ingredient lists show each bake\'s standard recipe and track five allergens: gluten, dairy, egg, soy and nuts. Swaps are requests: the bakery confirms the ingredients and every swap before baking. Bakes may be exposed to nuts and other allergens in the kitchen unless the bakery tells you otherwise, so tell the bakery about any allergy, especially a severe one, in your order notes.';
+$('safetyNote').innerHTML = '⚠️ Swaps are requests. The bakery confirms the ingredients and every swap before baking. If you have a severe allergy, tell the bakery in your order notes so they can talk it through with you.';
+
+/* ---------- builder ---------- */
+let B = {base:null, diets:new Set(), sw:[], tops:new Set(), qty:1};
+const bItem = () => ITEMS.find(i => i.id===B.base);
+
+ITEMS.forEach(it => {
+  const el = document.createElement('div');
+  el.className = 'choice'; el.dataset.id = it.id; el.tabIndex = 0; el.setAttribute('role','button');
+  el.innerHTML = `<span class="ic">${it.icon}</span>${esc(it.name)}`;
+  const pick = () => { B.base = it.id; B.sw = autoSwaps(it,[...B.diets]); if(!B.diets.size) B.sw = it.ing.map(() => false); renderBuilder(); };
+  el.addEventListener('click', pick);
+  el.addEventListener('keydown', e => { if(e.key==='Enter' || e.key===' '){ e.preventDefault(); pick(); } });
+  $('baseChoices').appendChild(el);
+});
+DIETS.forEach(d => {
+  const el = document.createElement('div');
+  el.className = 'check-item';
+  el.innerHTML = `<input type="checkbox" id="diet-${d.k}"><label for="diet-${d.k}">${d.label}</label>`;
+  el.querySelector('input').addEventListener('change', e => {
+    if(e.target.checked) B.diets.add(d.k); else B.diets.delete(d.k);
+    if(B.base){ const it = bItem(); B.sw = B.diets.size ? autoSwaps(it,[...B.diets]) : it.ing.map(() => false); }
+    renderBuilder();
+  });
+  $('dietChecks').appendChild(el);
+});
+TOPPINGS.forEach(t => {
+  const el = document.createElement('div');
+  el.className = 'topping'; el.dataset.name = t.name; el.tabIndex = 0; el.setAttribute('role','button');
+  const tog = () => {
+    if(el.classList.contains('disabled')) return;
+    if(B.tops.has(t.name)) B.tops.delete(t.name); else B.tops.add(t.name);
+    renderBuilder();
+  };
+  el.addEventListener('click', tog);
+  el.addEventListener('keydown', e => { if(e.key==='Enter' || e.key===' '){ e.preventDefault(); tog(); } });
+  $('toppingGrid').appendChild(el);
+});
+$('bQty').addEventListener('change', e => { B.qty = clampQty(e.target.value); e.target.value = B.qty; renderBuilder(); });
+
+function renderBuilder(focusI){
+  const ks = [...B.diets], C = conflicts(ks);
+  document.querySelectorAll('#baseChoices .choice').forEach(c => c.classList.toggle('selected', c.dataset.id===B.base));
+  DIETS.forEach(d => { $('diet-'+d.k).checked = B.diets.has(d.k); });
+  TOPPINGS.forEach(t => {
+    const el = $('toppingGrid').querySelector(`[data-name="${CSS.escape(t.name)}"]`);
+    const blocked = hit(t.tags,C);
+    if(blocked) B.tops.delete(t.name);
+    el.classList.toggle('disabled', blocked);
+    el.classList.toggle('selected', B.tops.has(t.name));
+    el.setAttribute('aria-disabled', blocked);
+    el.innerHTML = `<span>${esc(t.name)}</span>${blocked?'<span class="warn">excluded</span>':''}`;
+  });
+  const body = $('ticketBody'), totalWrap = $('ticketTotal'), add = $('bAdd');
+  $('bMsg').textContent = '';
+  if(!B.base){
+    $('bIng').innerHTML = '<div class="filter-note">Choose a base bake to see its ingredients.</div>';
+    $('bWarn').textContent = '';
+    body.innerHTML = '<div class="empty-note">Choose a base bake to start building your order.</div>';
+    totalWrap.style.display = 'none'; add.disabled = true; return;
+  }
+  const it = bItem(), tags = curTags(it,B.sw);
+  $('bIng').innerHTML = ingRows(it,B.sw,'b');
+  if(focusI!==undefined){ const f = $('bIng').querySelector(`[data-i="${focusI}"]`); if(f) f.focus(); }
+  const unmet = DIETS.filter(d => B.diets.has(d.k) && !meets(tags,d)).map(d => d.label);
+  $('bWarn').textContent = unmet.length ? `Your current ingredient choices do not meet: ${unmet.join(', ')}. Re-select the swaps, or explain your needs in the order notes.` : '';
+  let total = it.price, rows = `<div class="row"><span>${it.icon} ${esc(it.name)}</span><span>${money(it.price)}</span></div>`;
+  swapLabels(it,B.sw).forEach(l => { rows += `<div class="row"><span>Swap: ${esc(l)}</span><span>+${money(PRICING.swapExtra)}</span></div>`; total += PRICING.swapExtra; });
+  [...B.tops].forEach(t => { rows += `<div class="row"><span>+ ${esc(t)}</span><span>+${money(PRICING.toppingExtra)}</span></div>`; total += PRICING.toppingExtra; });
+  rows += `<div class="row"><span>Quantity</span><span>× ${B.qty}</span></div>`;
+  body.innerHTML = rows;
+  totalWrap.style.display = 'flex';
+  $('totalValue').textContent = money(total * B.qty);
+  add.disabled = false;
+}
+$('bAdd').addEventListener('click', () => {
+  if(!B.base) return;
+  const ln = addLine(bItem(), B.sw, B.qty, B.tops);
+  $('bMsg').textContent = '✓ Added to your order. Bake ref: ' + ln.ref + '. Open Order & Pay to review it.';
+});
+
+/* ---------- order & pay ---------- */
+let fulfil = 'collection', locLink = '', rating = 0;
+// UPDATE 6: Change Reference format to BATCH42
+const REF = 'BATCH42-' + Math.floor(100 + Math.random() * 900);
+const subtotal = () => cart.reduce((s,l) => s + lineTotal(l), 0);
+const grandTotal = () => subtotal() + (fulfil==='delivery' ? DELIVERY_FEE : 0);
+
+function renderBank(){
+  $('bankRows').innerHTML = Object.entries(BAKERY.bank).map(([k,v]) => `<div class="bank-row"><span class="k">${esc(k)}</span><span class="v">${ph(v)}</span></div>`).join('');
+  $('refShow').textContent = REF;
+  $('popEmail').innerHTML = ph(BAKERY.email);
+  $('hoursShow').textContent = BAKERY.hours;
+  $('cPhone').innerHTML = ph(BAKERY.phone); $('cEmail').innerHTML = ph(BAKERY.email); $('cHours').textContent = BAKERY.hours;
+  $('fHours').textContent = BAKERY.hours; $('collectAddr').innerHTML = ph(BAKERY.address);
+}
+function renderOrder(){
+  const box = $('cartBox');
+  if(!cart.length){
+    box.innerHTML = '<p style="margin:0 0 14px;">Your order is empty.</p><button class="btn btn-primary" onclick="goTo(\'menu\')">Browse the menu</button>';
+    return;
+  }
+  box.innerHTML = cart.map((l,i) => `<div class="cart-line">
+      <div><div class="nm">${l.icon} ${esc(l.name)}</div>
+      <div class="sub" style="font-weight:700;color:var(--rust);">Bake ref: ${esc(l.ref)}</div>
+      <div class="sub">${l.swaps.length ? 'Swaps: '+l.swaps.map(esc).join('; ') : 'Standard recipe'}${l.tops.length ? '<br>Toppings: '+l.tops.map(esc).join(', ') : ''}<br>${money(l.price)} each</div></div>
+      <div style="text-align:right;"><div class="qty-ctl"><button data-act="cdec" data-i="${i}" aria-label="Decrease quantity">−</button><span aria-live="polite">${l.qty}</span><button data-act="cinc" data-i="${i}" aria-label="Increase quantity">+</button><button class="rm" data-act="cdel" data-i="${i}">Remove</button></div>
+      <div style="margin-top:6px;font-weight:700;">${money(lineTotal(l))}</div></div></div>`).join('') +
+    `<div class="sum-row"><span>Subtotal</span><span>${money(subtotal())}</span></div>
+     ${fulfil==='delivery' ? `<div class="sum-row"><span>Delivery fee (fixed, local areas — to be confirmed)</span><span>${money(DELIVERY_FEE)}</span></div>` : ''}
+     <div class="sum-row total"><span>Order total</span><span>${money(grandTotal())}</span></div>`;
+}
+function setFulfil(mode){
+  fulfil = mode;
+  $('btnPickup').classList.toggle('active', mode==='collection');
+  $('btnDelivery').classList.toggle('active', mode==='delivery');
+  $('deliveryFields').style.display = mode==='delivery' ? 'block' : 'none';
+  $('collectFields').style.display = mode==='collection' ? 'block' : 'none';
+  renderOrder();
+}
+function openCatering(){ goTo('order'); $('cateringToggle').checked = true; $('cateringFields').style.display = 'block'; }
+$('cateringToggle').addEventListener('change', e => { $('cateringFields').style.display = e.target.checked ? 'block' : 'none'; });
+
+$('locBtn').addEventListener('click', () => {
+  const m = $('locMsg'); m.className = 'msg';
+  if(!navigator.geolocation){ m.className = 'msg err'; m.textContent = 'Location sharing is not available on this device. Please type your address instead.'; return; }
+  m.textContent = 'Finding your location…';
+  navigator.geolocation.getCurrentPosition(
+    p => { locLink = `https://www.google.com/maps?q=${p.coords.latitude.toFixed(6)},${p.coords.longitude.toFixed(6)}`; m.className = 'msg ok'; m.textContent = '✓ Location added to your order.'; },
+    () => { locLink = ''; m.className = 'msg err'; m.textContent = 'We could not get your location. Please type your address instead.'; },
+    {timeout:10000}
+  );
+});
+
+function summary(){
+  const v = id => $(id).value.trim();
+  let s = `ORDER ${REF}\n\nCustomer: ${v('custName')}\nPhone: ${v('custPhone')}\nEmail: ${v('custEmail') || '-'}\n\nFulfilment: ${fulfil==='delivery' ? 'Delivery' : 'Collection'}\n`;
+  if(fulfil==='delivery'){ s += `Suburb/area: ${v('suburb') || '-'}\nAddress: ${v('addressField')}\n`; if(locLink) s += `Shared location: ${locLink}\n`; }
+  if($('cateringToggle').checked) s += `\nCATERING BOOKING\nEvent date: ${v('catDate') || '-'}\nPeople/units: ${v('catSize') || '-'}\nDetails: ${v('catNotes') || '-'}\n`;
+  s += '\nITEMS\n';
+  cart.forEach(l => {
+    // UPDATE: clean text for email instead of HTML span
+    const priceTxt = l.price > 0 ? 'R'+Number(l.price).toFixed(2) : 'Price on request';
+    const lineTxt = (l.price + l.swaps.length*PRICING.swapExtra + l.tops.length*PRICING.toppingExtra);
+    const lineTotalTxt = l.price > 0 ? 'R'+Number(lineTxt * l.qty).toFixed(2) : 'Price on request';
+    
+    s += `- [${l.ref}] ${l.qty} x ${l.name} @ ${priceTxt} = ${lineTotalTxt}\n`;
+    if(l.swaps.length) s += `    Swaps: ${l.swaps.join('; ')}\n`;
+    if(l.tops.length) s += `    Toppings: ${l.tops.join(', ')}\n`;
+  });
+  
+  const subTxt = subtotal() > 0 ? 'R'+Number(subtotal()).toFixed(2) : 'Price on request';
+  const totTxt = grandTotal() > 0 ? 'R'+Number(grandTotal()).toFixed(2) : 'Price on request';
+  
+  s += `\nSubtotal: ${subTxt}\n`;
+  if(fulfil==='delivery') s += `Delivery fee: R${DELIVERY_FEE.toFixed(2)}\n`;
+  
+  // UPDATE 5: Add clear payment instructions in the email
+  s += `Order total: ${totTxt}\n\n`;
+  s += `⚠️ IMPORTANT PAYMENT INSTRUCTION:\n`;
+  s += `Please make your EFT payment using the reference: ${REF}\n`;
+  s += `Email your proof of payment to the bakery so they can confirm your order.\n`;
+  
+  if(v('orderNotes')) s += `\nAllergy details / notes: ${v('orderNotes')}\n`;
+  if(v('changeNote')) s += `\nChange or concern: ${v('changeNote')}\n`;
+  return s;
+}
+function validate(){
+  if(!cart.length) return 'Your order is empty. Add at least one bake first.';
+  if(!$('custName').value.trim()) return 'Please enter your full name.';
+  if(!$('custPhone').value.trim()) return 'Please enter a contact number.';
+  if(fulfil==='delivery' && !$('addressField').value.trim() && !locLink) return 'Please enter a delivery address or share your location.';
+  return '';
+}
+function say(id, text, ok){ const m = $(id); m.className = 'msg ' + (ok ? 'ok' : 'err'); m.textContent = text; }
+function mailTo(subject, body){ location.href = `mailto:${BAKERY.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`; }
+
+$('sendBtn').addEventListener('click', () => {
+  const e = validate(); if(e){ say('sendMsg', e, false); return; }
+  if(!BAKERY.email){ say('sendMsg', 'The bakery\'s email address has not been added to this site yet. Use "Copy order summary" and send it to the bakery directly.', false); return; }
+  say('sendMsg', 'Opening your email app. Press send to submit your order to the bakery.', true);
+  mailTo(`New order ${REF}`, summary());
+});
+$('copyBtn').addEventListener('click', async () => {
+  const e = validate(); if(e){ say('sendMsg', e, false); return; }
+  const s = summary();
+  try { await navigator.clipboard.writeText(s); say('sendMsg', '✓ Order summary copied. Paste it into a message to the bakery.', true); }
+  catch(_){
+    const t = document.createElement('textarea'); t.value = s; document.body.appendChild(t); t.select();
+    let ok = false; try { ok = document.execCommand('copy'); } catch(_){}
+    document.body.removeChild(t);
+    say('sendMsg', ok ? '✓ Order summary copied. Paste it into a message to the bakery.' : 'Copying is not available here. Please select and copy your order details manually.', ok);
+  }
+});
+$('popBtn').addEventListener('click', () => {
+  if(!BAKERY.email){ say('sendMsg', 'The bakery\'s email address has not been added to this site yet. Ask the bakery which email to send your proof of payment to.', false); return; }
+  mailTo(`Proof of payment - order ${REF}`, `Hi, please find my proof of payment attached (please attach it before sending).\n\nOrder reference: ${REF}\nName: ${$('custName').value.trim()}\nAmount paid: ${grandTotal() > 0 ? 'R'+Number(grandTotal()).toFixed(2) : 'Price on request'}`);
+});
+
+/* ---------- rating (home) ---------- */
+function renderStars(){
+  $('starRow').innerHTML = [1,2,3,4,5].map(n => `<button type="button" data-act="star" data-n="${n}" class="${n<=rating?'on':''}" aria-label="${n} out of 5 stars" aria-pressed="${n===rating}">★</button>`).join('');
+}
+$('rateSend').addEventListener('click', () => {
+  if(!rating){ say('rateMsg','Please choose a star rating first.',false); return; }
+  if(!BAKERY.email){ say('rateMsg','The bakery\'s email address has not been added to this site yet, so feedback cannot be sent.',false); return; }
+  say('rateMsg','Opening your email app. Press send to submit your feedback.',true);
+  mailTo('Customer service rating', `Rating: ${rating} out of 5\n\nComments: ${$('rateComment').value.trim() || '-'}`);
+});
+
+/* ---------- home chips ---------- */
+$('homeChips').innerHTML = DIETS.map(d => {
+  const sub = d.k==='nuts' ? 'See nut information' : (d.main ? 'Filter & swap' : 'Swap on request');
+  return `<button type="button" class="allergen-chip" data-act="homechip" data-k="${d.k}"><div class="lbl">${d.label}</div><div class="sub">${sub}</div></button>`;
+}).join('');
+
+/* ---------- global event delegation ---------- */
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if(!b) return;
+  const act = b.dataset.act, id = b.dataset.id;
+  if(act==='toggle'){ openSet.has(id) ? openSet.delete(id) : openSet.add(id); refreshCard(id); }
+  else if(act==='vegan'){ const it = ITEMS.find(i => i.id===id); menuSw[id] = autoSwaps(it,['vegan']); refreshCard(id); }
+  else if(act==='reset'){ const it = ITEMS.find(i => i.id===id); menuSw[id] = it.ing.map(() => false); refreshCard(id); }
+  else if(act==='add'){ const it = ITEMS.find(i => i.id===id); const ln = addLine(it, menuSw[id], qtyMap[id], new Set()); const m = $('added-'+id); if(m) m.textContent = '✓ Added to your order. Bake ref: ' + ln.ref; }
+  else if(act==='chip'){ const k = b.dataset.k; filt.has(k) ? filt.delete(k) : filt.add(k); applyFilters(); }
+  else if(act==='homechip'){ filt.add(b.dataset.k); applyFilters(); goTo('menu'); }
+  else if(act==='cinc'){ const l = cart[b.dataset.i]; l.qty = Math.min(99,l.qty+1); updateBadge(); renderOrder(); }
+  else if(act==='cdec'){ const l = cart[b.dataset.i]; l.qty = Math.max(1,l.qty-1); updateBadge(); renderOrder(); }
+  else if(act==='cdel'){ cart.splice(b.dataset.i,1); updateBadge(); renderOrder(); }
+  else if(act==='star'){ rating = parseInt(b.dataset.n,10); renderStars(); }
+});
+document.addEventListener('change', e => {
+  const b = e.target.closest('[data-act]'); if(!b) return;
+  if(b.dataset.act==='swap'){
+    const i = parseInt(b.dataset.i,10), on = b.value==='1';
+    if(b.dataset.ctx==='m'){ menuSw[b.dataset.id][i] = on; refreshCard(b.dataset.id); const s = $('card-'+b.dataset.id).querySelector(`[data-i="${i}"]`); if(s) s.focus(); }
+    else { B.sw[i] = on; renderBuilder(i); }
+  } else if(b.dataset.act==='qty'){ qtyMap[b.dataset.id] = clampQty(b.value); b.value = qtyMap[b.dataset.id]; }
+});
+
+/* ---------- init ---------- */
+renderBank(); renderChips(); renderMenu(); renderBuilder(); renderOrder(); renderStars();
+</script>
+</body>
+</html>
